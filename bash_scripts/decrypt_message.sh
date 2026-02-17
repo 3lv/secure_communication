@@ -24,14 +24,15 @@ mkdir -p "$OTHER_DIR/$DH_RECEIVED_POINTS"
 ### End of directory structure
 
 
-mail_file="$(notmuch search --output=files --sort=newest-first \
-  "from:$other_email_address subject:\"Encrypted Message\"" | head -n 1)"
-echo "$mail_file"
-
-if [ -z "$mail_file" ]; then
-    echo "No email found from $other_person with subject \"Encrypted Message\""
-    exit 1
-fi
+#mail_file="$(notmuch search --output=files --sort=newest-first \
+#  "from:$other_email_address subject:\"Encrypted Message\"" | head -n 1)"
+#echo "$mail_file"
+#
+#if [ -z "$mail_file" ]; then
+#    echo "No email found from $other_person with subject \"Encrypted Message\""
+#    exit 1
+#fi
+mail_file="mail.txt"
 # Parse the email content, extract the my_point_timestamp, other_point_timestamp and ciphertext_b64
 #MAIL_FILE="mail.txt"
 # Reverse the points (from our perspective, their "my_point" is our "other_point" etc)

@@ -19,9 +19,10 @@ ME="__me__"
 MY_DIR="${PEOPLE_DIR}/${ME}"
 OTHER_DIR="${PEOPLE_DIR}/${other_person}"
 
-mail_file="$(notmuch search --output=files --sort=newest-first \
-  "from:$other_email_address subject:\"DH Point Update\"" | head -n 1)"
-echo "$mail_file"
+#mail_file="$(notmuch search --output=files --sort=newest-first \
+#  "from:$other_email_address subject:\"DH Point Update\"" | head -n 1)"
+#echo "$mail_file"
+mail_file="mail.txt"
 
 # This is how the email is expected to be formatted, the send_dh_point.sh script composes it like this:
 #echo "-----BEGIN DH EMAIL-----" > mail.txt
@@ -32,9 +33,9 @@ echo "$mail_file"
 
 # Parse into timestamp, public_point_b64 and signature_b64
 # TODO: Improve parsing security
-timestamp=$(grep "timestamp: " "$MAIL_FILE" | cut -d' ' -f2)
-public_point_b64=$(grep "dh_pub_b64: " "$MAIL_FILE" | cut -d' ' -f2)
-signature_b64=$(grep "dh_sig_b64: " "$MAIL_FILE" | cut -d' ' -f2)
+timestamp=$(grep "timestamp: " "$mail_file" | cut -d' ' -f2)
+public_point_b64=$(grep "dh_pub_b64: " "$mail_file" | cut -d' ' -f2)
+signature_b64=$(grep "dh_sig_b64: " "$mail_file" | cut -d' ' -f2)
 # TODO: Enfore parsing length and format and also check missing fields
 
 NEW_POINT="${other_person}/${DH_RECEIVED_POINTS}/${timestamp}"

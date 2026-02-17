@@ -54,14 +54,16 @@ echo "dh_pub_b64: $(cat "$NEW_POINT/pub.b64")" >> "$MAIL_FILE"
 echo "dh_sig_b64: $(cat "$NEW_POINT/sig.b64")" >> "$MAIL_FILE"
 echo "-----END DH EMAIL-----" >> "$MAIL_FILE"
 
-# Send the mail.txt via email using curl
-email_address=$(cat "$MY_DIR/$EMAIL")
-other_email_address=$(cat "$OTHER_DIR/$EMAIL")
-(
-    echo "From: $email_address"
-    echo "To: $other_email_address"
-    echo "Subject: DH Point Update"
-    echo "Date: $(date -R)"
-    echo
-    cat "$MAIL_FILE"
-) | gmi send
+cat "$MAIL_FILE"
+
+## Send the mail.txt via email using curl
+#email_address=$(cat "$MAIL_FILE")
+#other_email_address=$(cat "$OTHER_DIR/$EMAIL")
+#(
+#    echo "From: $email_address"
+#    echo "To: $other_email_address"
+#    echo "Subject: DH Point Update"
+#    echo "Date: $(date -R)"
+#    echo
+#    cat "$MAIL_FILE"
+#) | gmi send

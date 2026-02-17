@@ -79,15 +79,15 @@ echo "ciphertext_b64: $ciphertext_b64" >> "$MAIL_FILE"
 echo "-----END DH EMAIL-----" >> "$MAIL_FILE"
 
 # TODO: Send the mail.txt
-
-# Make it RFC 5322 compliant by adding a From, To, Subject, and Date header
-email_address=$(cat "$MY_DIR/$EMAIL")
-other_email_address=$(cat "$OTHER_DIR/$EMAIL")
-(
-    echo "From: $email_address"
-    echo "To: $other_email_address"
-    echo "Subject: Encrypted Message"
-    echo "Date: $(date -R)"
-    echo
-    cat "$MAIL_FILE"
-) | gmi send
+#
+## Make it RFC 5322 compliant by adding a From, To, Subject, and Date header
+#email_address=$(cat "$MY_DIR/$EMAIL")
+#other_email_address=$(cat "$OTHER_DIR/$EMAIL")
+#(
+#    echo "From: $email_address"
+#    echo "To: $other_email_address"
+#    echo "Subject: Encrypted Message"
+#    echo "Date: $(date -R)"
+#    echo
+#    cat "$MAIL_FILE"
+#) | gmi send
