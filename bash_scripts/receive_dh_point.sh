@@ -18,11 +18,19 @@ EMAIL_PASSWORD="email_password.txt"
 ME="__me__"
 MY_DIR="${PEOPLE_DIR}/${ME}"
 OTHER_DIR="${PEOPLE_DIR}/${other_person}"
+email_address=$(cat "$MY_DIR/$EMAIL")
+other_email_address=$(cat "$OTHER_DIR/$EMAIL")
 
-#mail_file="$(notmuch search --output=files --sort=newest-first \
-#  "from:$other_email_address subject:\"DH Point Update\"" | head -n 1)"
-#echo "$mail_file"
-mail_file="mail.txt"
+mail_file="$(notmuch search --output=files --sort=newest-first \
+  "from:$other_email_address subject:\"DH Point Update\"" | head -n 1)"
+if [ -z "$mail_file" ]; then
+    echo "No email found from $other_person with subject \"Encrypted Message\""
+    exit 1
+fi
+
+#mail_file="mail.txt"
+#mail_content=$(cat "$mail_file")
+#echo "$mail_content"
 
 # This is how the email is expected to be formatted, the send_dh_point.sh script composes it like this:
 #echo "-----BEGIN DH EMAIL-----" > mail.txt
@@ -38,9 +46,14 @@ public_point_b64=$(grep "dh_pub_b64: " "$mail_file" | cut -d' ' -f2)
 signature_b64=$(grep "dh_sig_b64: " "$mail_file" | cut -d' ' -f2)
 # TODO: Enfore parsing length and format and also check missing fields
 
+echo timestamp: "$timestamp"
+echo public_point_b64: "$public_point_b64"
+echo signature_b64: "$signature_b64"
+
 NEW_POINT="${other_person}/${DH_RECEIVED_POINTS}/${timestamp}"
 POTENTIAL_NEW_POINT="/tmp/${other_person}_${timestamp}"
 mkdir -p "$POTENTIAL_NEW_POINT"
+
 
 # Save to temp file before verifying with openssl
 echo "$public_point_b64" | base64 -d > "$POTENTIAL_NEW_POINT/received_pub.pem"
