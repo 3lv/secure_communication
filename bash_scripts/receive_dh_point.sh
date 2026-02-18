@@ -3,28 +3,23 @@
 
 # Pulls emails from <other_person> and parses the DH public point, verifies the signature, and saves it
 
-set -euo pipefail
-IFS=$'\n\t'
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck disable=SC1091 #Sourcing the groudrails relative to the script dir
+source "$SCRIPT_DIR/lib/guardrails.sh"
+source "$SCRIPT_DIR/lib/constants.sh"
 
 other_person="$1"
 
-# Directory structure:
-PEOPLE_DIR="people"
-DH_MY_POINTS="dh_my_points"
-DH_RECEIVED_POINTS="dh_received_points"
-EMAIL="email_address.txt"
-EMAIL_PASSWORD="email_password.txt"
+other_dir="${PEOPLE_DIR}/${other_person}"
+mkdir -p "$other_dir/$DH_MY_POINTS"
+mkdir -p "$other_dir/$DH_RECEIVED_POINTS"
+other_email_address=$(cat "$other_dir/$EMAIL")
 
-ME="__me__"
-MY_DIR="${PEOPLE_DIR}/${ME}"
-OTHER_DIR="${PEOPLE_DIR}/${other_person}"
-email_address=$(cat "$MY_DIR/$EMAIL")
-other_email_address=$(cat "$OTHER_DIR/$EMAIL")
-
+gmi pull -C "$GMI_DIR"
 mail_file="$(notmuch search --output=files --sort=newest-first \
   "from:$other_email_address subject:\"DH Point Update\"" | head -n 1)"
 if [ -z "$mail_file" ]; then
-    echo "No email found from $other_person with subject \"Encrypted Message\""
+    echo "No email found from $other_person with subject \"DH Point Update\""
     exit 1
 fi
 
@@ -50,8 +45,9 @@ echo timestamp: "$timestamp"
 echo public_point_b64: "$public_point_b64"
 echo signature_b64: "$signature_b64"
 
-NEW_POINT="${other_person}/${DH_RECEIVED_POINTS}/${timestamp}"
-POTENTIAL_NEW_POINT="/tmp/${other_person}_${timestamp}"
+NEW_POINT="${other_dir}/${DH_RECEIVED_POINTS}/${timestamp}"
+#POTENTIAL_NEW_POINT="/tmp/${other_person}_${timestamp}"
+POTENTIAL_NEW_POINT="$(mktemp -d)"
 mkdir -p "$POTENTIAL_NEW_POINT"
 
 
@@ -67,18 +63,12 @@ echo "dh_pub_b64: $public_point_b64" >> "$POTENTIAL_NEW_POINT/payload.txt"
 openssl pkeyutl \
     -verify \
     -pubin \
-    -inkey "$OTHER_DIR/ed25519_public.pem" \
+    -inkey "$other_dir/ed25519_public.pem" \
     -rawin \
     -in "$POTENTIAL_NEW_POINT/payload.txt" \
     -sigfile "$POTENTIAL_NEW_POINT/received_sig.bin"
 
-# Check if code 0
-#if [ $? -ne 0 ]; then
-#    echo "Signature verification failed"
-#    exit 1
-#fi
 
-# Actually save it to the right place
-mkdir -p "${OTHER_DIR}/${DH_RECEIVED_POINTS}/${timestamp}"
-mv "$POTENTIAL_NEW_POINT/received_pub.pem" "${OTHER_DIR}/${DH_RECEIVED_POINTS}/${timestamp}/eph_x25519_public.pem"
-mv "$POTENTIAL_NEW_POINT/received_sig.bin" "${OTHER_DIR}/${DH_RECEIVED_POINTS}/${timestamp}/eph_x25519_public.sig"
+mkdir -p "${other_dir}/${DH_RECEIVED_POINTS}/${timestamp}"
+mv "$POTENTIAL_NEW_POINT/received_pub.pem" "$NEW_POINT/eph_x25519_public.pem"
+mv "$POTENTIAL_NEW_POINT/received_sig.bin" "$NEW_POINT/eph_x25519_public.sig"

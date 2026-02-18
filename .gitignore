@@ -1,1 +1,3 @@
 people/
+.venv/
+__pycache__/

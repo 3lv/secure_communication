@@ -2,31 +2,23 @@
 # Usage: ./send_dh_point.sh <other_person>
 # This generates a new dh public point and sends it
 
-set -euo pipefail
-IFS=$'\n\t'
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck disable=SC1091 #Sourcing the groudrails relative to the script dir
+source "$SCRIPT_DIR/lib/guardrails.sh"
+source "$SCRIPT_DIR/lib/constants.sh"
 
 other_person="$1"
 
-### Directory structure:
-PEOPLE_DIR="people"
-DH_MY_POINTS="dh_my_points"
-DH_RECEIVED_POINTS="dh_received_points"
-EMAIL="email_address.txt"
-EMAIL_PASSWORD="email_password.txt"
-GMI_DIR="/home/vlad/.mail/gmail"
+other_dir="${PEOPLE_DIR}/${other_person}"
+mkdir -p "$other_dir/$DH_MY_POINTS"
+mkdir -p "$other_dir/$DH_RECEIVED_POINTS"
 
-ME="__me__"
-MY_DIR="${PEOPLE_DIR}/${ME}"
-OTHER_DIR="${PEOPLE_DIR}/${other_person}"
-
-mkdir -p "$MY_DIR"
-mkdir -p "$OTHER_DIR/$DH_MY_POINTS"
-mkdir -p "$OTHER_DIR/$DH_RECEIVED_POINTS"
-### End of directory structure
+my_email_address=$(cat "$MY_DIR/$EMAIL")
+other_email_address=$(cat "$other_dir/$EMAIL")
 
 # Make a new dir for the new values inside MY_VALUES
 TIMESTAMP=$(date +%s)
-NEW_POINT="${OTHER_DIR}/${DH_MY_POINTS}/${TIMESTAMP}"
+NEW_POINT="${other_dir}/${DH_MY_POINTS}/${TIMESTAMP}"
 mkdir -p "$NEW_POINT"
 
 # Generate it
@@ -58,10 +50,10 @@ echo "-----END DH EMAIL-----" >> "$MAIL_FILE"
 cat "$MAIL_FILE"
 
 # Send the mail.txt via email using curl
-email_address=$(cat "$MY_DIR/$EMAIL")
-other_email_address=$(cat "$OTHER_DIR/$EMAIL")
+my_email_address=$(cat "$MY_DIR/$EMAIL")
+other_email_address=$(cat "$other_dir/$EMAIL")
 (
-    echo "From: $email_address"
+    echo "From: $my_email_address"
     echo "To: $other_email_address"
     echo "Subject: DH Point Update"
     echo "Date: $(date -R)"

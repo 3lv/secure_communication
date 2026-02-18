@@ -1,9 +1,14 @@
 #!/usr/bin/bash
 
-PEOPLE_DIR="people"
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck disable=SC1091 #Sourcing the groudrails relative to the script dir
+source "$SCRIPT_DIR/lib/guardrails.sh"
+safe_source "lib/constants.sh"
 
-ME="__me__"
-MY_DIR="${PEOPLE_DIR}/${ME}"
+if [ -f "$MY_DIR/ed25519_private.pem" ] || [ -f "$MY_DIR/ed25519_public.pem" ]; then
+    echo "Error: ed25519 key pair already exists in $MY_DIR!"
+    exit 1
+fi
 
 mkdir -p "$MY_DIR"
 
