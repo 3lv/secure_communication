@@ -1,1 +1,2 @@
 - Make the lib/parse.sh functions always require min and max arguments
+- Improve receive_dh_point error handling when last mail was already process
