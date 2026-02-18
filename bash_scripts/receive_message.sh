@@ -1,43 +1,46 @@
 #!/usr/bin/bash
 # Usage: ./receive_message.sh <other_person>
+#
 # This script is run after receiving an email, checks the DH public
 # points used and decrypt + check the integrity of the message,
 # then prints it
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-# shellcheck disable=SC1091 #Sourcing the groudrails relative to the script dir
 source "$SCRIPT_DIR/lib/guardrails.sh"
 source "$SCRIPT_DIR/lib/constants.sh"
+source "$SCRIPT_DIR/lib/parse.sh"
 
-other_person="$1"
+DANGER_USER_other_person="$1"
+other_person=$(parse_known_person "$DANGER_USER_other_person")
+
 other_dir="${PEOPLE_DIR}/${other_person}"
 mkdir -p "$other_dir/$DH_MY_POINTS"
 mkdir -p "$other_dir/$DH_RECEIVED_POINTS"
 other_email_address=$(cat "$other_dir/$EMAIL")
 
-
 #mail_file="mail.txt"
-gmi pull -C "$GMI_DIR"
-mail_file="$(notmuch search --output=files --sort=newest-first \
+echo "Fetching emails from $other_person..."
+gmi pull -C "$GMI_DIR" >/dev/null
+DANGER_FROM_NETWORK_mail_file="$(notmuch search --output=files --sort=newest-first \
   "from:$other_email_address subject:\"Encrypted Message\"" | head -n 1)"
-if [ -z "$mail_file" ]; then
-    echo "No email found from $other_person with subject \"Encrypted Message\""
-    exit 1
+# DANGER explained:
+#  - File can actually not exist
+#  - File can contain anything
+if [ -z "$DANGER_FROM_NETWORK_mail_file" ]; then
+    die "No email found from $other_person with subject \"Encrypted Message\""
 fi
+echo "Got latest 'Encrypted Message' email from $other_person"
 
 # Parse the email content, extract the my_point_timestamp, other_point_timestamp and ciphertext_b64
 #MAIL_FILE="mail.txt"
 # Reverse the points (from our perspective, their "my_point" is our "other_point" etc)
-other_point_timestamp=$(grep "my_point_timestamp: " "$mail_file" | cut -d' ' -f2)
-my_point_timestamp=$(grep "other_point_timestamp: " "$mail_file" | cut -d' ' -f2)
-ciphertext_b64=$(grep "ciphertext_b64: " "$mail_file" | cut -d' ' -f2)
+DANGER_FROM_NETWORK_other_point_timestamp=$(grep "my_point_timestamp: " "$DANGER_FROM_NETWORK_mail_file" | cut -d' ' -f2)
+DANGER_FROM_NETWORK_my_point_timestamp=$(grep "other_point_timestamp: " "$DANGER_FROM_NETWORK_mail_file" | cut -d' ' -f2)
+DANGER_FROM_NETWORK_ciphertext_b64=$(grep "ciphertext_b64: " "$DANGER_FROM_NETWORK_mail_file" | cut -d' ' -f2)
 
-# Check if the other_point and my_point are the same as the ones we have in the $OTHER_DIR, if not, reject the message
-# Check if toher_dir exists
-if [ ! -d "$other_dir" ]; then
-    echo "Error: You don't have $other_person in your agenda people agenda!"
-    exit 1
-fi
+my_point_timestamp=$(parse_timestamp "$DANGER_FROM_NETWORK_my_point_timestamp")
+other_point_timestamp=$(parse_timestamp "$DANGER_FROM_NETWORK_other_point_timestamp")
+ciphertext_b64=$(parse_b64 "$DANGER_FROM_NETWORK_ciphertext_b64" 1000000)
 
 # TODO: Use point hash instead of timestamp, similar to the commented code
 #found_other_point=0
@@ -111,13 +114,16 @@ session_key=$(openssl kdf -keylen 32 \
 # Create the ciphertext.cms from the ciphertext_b64
 echo "$ciphertext_b64" | base64 -d > /tmp/ciphertext.cms
 
-openssl cms \
+decrypted_message=$(openssl cms \
   -decrypt \
   -binary \
   -secretkey "$session_key" \
   -inform DER \
   -in /tmp/ciphertext.cms \
-  #-out decrypted.txt
+)
+rm /tmp/ciphertext.cms
 
-#cat decrypted.txt
-echo
+echo "$decrypted_message"
+# Not having this $decrypted_message stored anywhere and having the
+# eph_x25519_private.pem removed from the both sides,
+# make the message unrecoverable

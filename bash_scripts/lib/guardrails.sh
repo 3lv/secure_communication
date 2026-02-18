@@ -3,6 +3,7 @@
 # Always use shellcheck for static analysis of bash scripts, it can catch many common mistakes and security issues.
 
 # Explain each with a comment
+# set +x: Disable debugging output(i.e printing each command before executing it)
 # set -e: Exit immediately if a command exits with a non-zero status.
 # set -u: Treat unset variables as an error when substituting.
 #   (Doesn't fail when setting the variable to the output of some
@@ -13,7 +14,7 @@
 #   if cmd; then ... suppresses -e exits inside certain constructs
 #   cmd || true hides failure
 
-set -euo pipefail
+set +x -euo pipefail
 
 # IFS=$'\n\t' sets the Internal Field Separator to newline and tab,
 # which helps to handle filenames with spaces correctly.
@@ -65,15 +66,22 @@ export PATH
 #  Always better than just "exit 1" because it gives context about what went wrong.
 die(){ printf 'fatal: %s\n' "$*" >&2; exit 1; }
 
+# Check if all the dependencies are installed
+require_cmd() {
+  local c
+  for c in "$@"; do
+    command -v -- "$c" >/dev/null 2>&1 || die "missing required command: $c"
+  done
+}
 
 # All user inputs should be validated before usage.
 #   Because of that, all user inputs variables will start with USER_INPUT_
 #   to make it clear that they need to be validated before usage.
 #   Single entry point for user inputs also makes it easier to review the code for security issues.
-_USER_INPUT_PREFIX="USER_INPUT_"
+DANGER_USER_variable_name="VARIABLE FROM USER INPUT, MUST BE VALIDATED BEFORE USAGE"
 # These are closely related to CLIs which do network operations.
 #   Whenever using curl, gmi, etc, there should be a clear indicator:
-_NETWORK_OPERATION_PREFIX="NETWORK_OP_"
+DANGER_NETWORK_variable_name="VARIABLE FROM NETWORK, MUST BE VALIDATED BEFORE USAGE"
 
 # Ofc, never use eval or similar functions to execute anything that can be related to user input,
 #   there has to be some better alternative
@@ -84,9 +92,17 @@ _NETWORK_OPERATION_PREFIX="NETWORK_OP_"
 # Writes to predictable locations shuuld be avoided, such as /tmp, home directory, etc.
 #   use tmp=$(mktemp -d) to create a temporary directory with a random name, and then clean it up after usage
 # Also, make sure you don't write secrets to disk
+# Write to fd instead
+#exec 3<<<"$secret"                 # FD 3 holds the secret
+#some_command --secret-file /proc/self/fd/3
+#exec 3<&-                          # close FD 3
 
 # Passing secrets as CLI args is insecure, because they can be seen in the process list by other users.
 # Instead, ...
+# /proc/<pid>/cmdline can list the full command including secret arguments
+# /proc/<pid>/environ can list environment variables, which can also contain secrets
+# Mount /proc with hidepid=2 to prevent other users from seeing the process details of processes they don't own.
+#   Does not hide from root ofc
 # TODO: Complete this policy
 
 

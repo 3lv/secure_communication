@@ -1,17 +1,21 @@
 #!/usr/bin/bash
 # Usage: ./send_dh_point.sh <other_person>
+#
 # This generates a new dh public point and sends it
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-# shellcheck disable=SC1091 #Sourcing the groudrails relative to the script dir
 source "$SCRIPT_DIR/lib/guardrails.sh"
 source "$SCRIPT_DIR/lib/constants.sh"
+source "$SCRIPT_DIR/lib/parse.sh"
 
-other_person="$1"
+DANGER_USER_other_person="$1"
+other_person=$(parse_known_person "$DANGER_USER_other_person")
 
 other_dir="${PEOPLE_DIR}/${other_person}"
 mkdir -p "$other_dir/$DH_MY_POINTS"
 mkdir -p "$other_dir/$DH_RECEIVED_POINTS"
+my_email_address=$(cat "$MY_DIR/$EMAIL")
+other_email_address=$(cat "$other_dir/$EMAIL")
 
 my_email_address=$(cat "$MY_DIR/$EMAIL")
 other_email_address=$(cat "$other_dir/$EMAIL")
@@ -47,11 +51,7 @@ echo "dh_pub_b64: $(cat "$NEW_POINT/pub.b64")" >> "$MAIL_FILE"
 echo "dh_sig_b64: $(cat "$NEW_POINT/sig.b64")" >> "$MAIL_FILE"
 echo "-----END DH EMAIL-----" >> "$MAIL_FILE"
 
-cat "$MAIL_FILE"
-
-# Send the mail.txt via email using curl
-my_email_address=$(cat "$MY_DIR/$EMAIL")
-other_email_address=$(cat "$other_dir/$EMAIL")
+echo "Sending DH email..."
 (
     echo "From: $my_email_address"
     echo "To: $other_email_address"
@@ -59,6 +59,7 @@ other_email_address=$(cat "$other_dir/$EMAIL")
     echo "Date: $(date -R)"
     echo
     cat "$MAIL_FILE"
-) | gmi send -t -C "$GMI_DIR"
+) | gmi send -t -C "$GMI_DIR" >/dev/null
+rm "$MAIL_FILE"
 
 echo "DH point sent successfully!"

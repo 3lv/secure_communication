@@ -1,27 +1,30 @@
 #!/usr/bin/bash
 # Usage: ./receive_dh_point.sh <other_person>
-
+#
 # Pulls emails from <other_person> and parses the DH public point, verifies the signature, and saves it
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-# shellcheck disable=SC1091 #Sourcing the groudrails relative to the script dir
 source "$SCRIPT_DIR/lib/guardrails.sh"
 source "$SCRIPT_DIR/lib/constants.sh"
+source "$SCRIPT_DIR/lib/parse.sh"
 
-other_person="$1"
+DANGER_USER_other_person="$1"
+other_person=$(parse_known_person "$DANGER_USER_other_person")
 
 other_dir="${PEOPLE_DIR}/${other_person}"
 mkdir -p "$other_dir/$DH_MY_POINTS"
 mkdir -p "$other_dir/$DH_RECEIVED_POINTS"
 other_email_address=$(cat "$other_dir/$EMAIL")
 
-gmi pull -C "$GMI_DIR"
-mail_file="$(notmuch search --output=files --sort=newest-first \
+echo "Fetching emails from $other_person..."
+gmi pull -C "$GMI_DIR" >/dev/null
+
+DANGER_NETWORK_mail_file="$(notmuch search --output=files --sort=newest-first \
   "from:$other_email_address subject:\"DH Point Update\"" | head -n 1)"
-if [ -z "$mail_file" ]; then
-    echo "No email found from $other_person with subject \"DH Point Update\""
-    exit 1
+if [ -z "$DANGER_NETWORK_mail_file" ]; then
+    die "No email found from $other_person with subject \"DH Point Update\""
 fi
+echo "Got latest 'DH Point Update' email from $other_person"
 
 #mail_file="mail.txt"
 #mail_content=$(cat "$mail_file")
@@ -33,23 +36,23 @@ fi
 #echo "dh_pub_b64: $(cat "$NEW_POINT/pub.b64")" >> mail.txt
 #echo "dh_sig_b64: $(cat "$NEW_POINT/sig.b64")" >> mail.txt
 #echo "-----END DH EMAIL-----" >> mail.txt
+# TODO: Improve parsing security by checking the structure (and order of fields)
 
-# Parse into timestamp, public_point_b64 and signature_b64
-# TODO: Improve parsing security
-timestamp=$(grep "timestamp: " "$mail_file" | cut -d' ' -f2)
-public_point_b64=$(grep "dh_pub_b64: " "$mail_file" | cut -d' ' -f2)
-signature_b64=$(grep "dh_sig_b64: " "$mail_file" | cut -d' ' -f2)
-# TODO: Enfore parsing length and format and also check missing fields
+DANGER_NETWORK_timestamp=$(grep "timestamp: " "$DANGER_NETWORK_mail_file" | cut -d' ' -f2)
+DANGER_NETWORK_public_point_b64=$(grep "dh_pub_b64: " "$DANGER_NETWORK_mail_file" | cut -d' ' -f2)
+DANGER_NETWORK_signature_b64=$(grep "dh_sig_b64: " "$DANGER_NETWORK_mail_file" | cut -d' ' -f2)
 
-echo timestamp: "$timestamp"
-echo public_point_b64: "$public_point_b64"
-echo signature_b64: "$signature_b64"
+timestamp=$(parse_timestamp "$DANGER_NETWORK_timestamp")
+public_point_b64=$(parse_b64 "$DANGER_NETWORK_public_point_b64" 1000)
+signature_b64=$(parse_b64 "$DANGER_NETWORK_signature_b64" 1000)
 
-NEW_POINT="${other_dir}/${DH_RECEIVED_POINTS}/${timestamp}"
+new_point="${other_dir}/${DH_RECEIVED_POINTS}/${timestamp}"
+if [ -d "$new_point" ]; then
+    die "A point with timestamp $timestamp already exists, possibly no new point or replay attack"
+fi
 #POTENTIAL_NEW_POINT="/tmp/${other_person}_${timestamp}"
 POTENTIAL_NEW_POINT="$(mktemp -d)"
 mkdir -p "$POTENTIAL_NEW_POINT"
-
 
 # Save to temp file before verifying with openssl
 echo "$public_point_b64" | base64 -d > "$POTENTIAL_NEW_POINT/received_pub.pem"
@@ -69,6 +72,9 @@ openssl pkeyutl \
     -sigfile "$POTENTIAL_NEW_POINT/received_sig.bin"
 
 
-mkdir -p "${other_dir}/${DH_RECEIVED_POINTS}/${timestamp}"
-mv "$POTENTIAL_NEW_POINT/received_pub.pem" "$NEW_POINT/eph_x25519_public.pem"
-mv "$POTENTIAL_NEW_POINT/received_sig.bin" "$NEW_POINT/eph_x25519_public.sig"
+mkdir -p "$new_point"
+mv "$POTENTIAL_NEW_POINT/received_pub.pem" "$new_point/eph_x25519_public.pem"
+mv "$POTENTIAL_NEW_POINT/received_sig.bin" "$new_point/eph_x25519_public.sig"
+rm -rf "$POTENTIAL_NEW_POINT"
+
+echo "Successfully received point from $other_person"
