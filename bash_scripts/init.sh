@@ -10,6 +10,7 @@ source "$SCRIPT_DIR/lib/parse.sh"
 required_commands openssl base64 gmi notmuch
 
 DANGER_USER_email="$1"
+
 email=$(parse_email "$DANGER_USER_email")
 
 mkdir -p "$MY_DIR"

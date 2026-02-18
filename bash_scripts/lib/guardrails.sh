@@ -2,7 +2,6 @@
 
 # Always use shellcheck for static analysis of bash scripts, it can catch many common mistakes and security issues.
 
-# Explain each with a comment
 # set +x: Disable debugging output(i.e printing each command before executing it)
 # set -e: Exit immediately if a command exits with a non-zero status.
 # set -u: Treat unset variables as an error when substituting.

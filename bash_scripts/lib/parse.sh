@@ -104,3 +104,15 @@ parse_known_person() {
 
     printf '%s\n' "$s"
 }
+
+parse_email() {
+    local s="$1"
+    # Basic email validation: reasonable length, local@domain, no spaces
+    is_len_between "$s" 5 254 || die "email length must be between 5 and 254 characters"
+    [[ "$s" == *@* ]] || die "invalid email format (missing '@')"
+    [[ "$s" != *[[:space:]]* ]] || die "email must not contain spaces"
+    # More complex regex could be used, but this is a reasonable balance for now
+    [[ "$s" =~ ^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$ ]] || die "invalid email format"
+
+    printf '%s\n' "$s"
+}
