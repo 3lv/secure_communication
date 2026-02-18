@@ -64,18 +64,18 @@ parse_b64() {
     (( ${#s} % 4 == 0 )) || die "invalid base64 length (must be multiple of 4)"
 
     # '=' padding rules: only at end, at most 2
-    case "$s" in
-        (*=*=*) die "invalid base64 padding" ;;  # '=' appears more than once separated
-    esac
-    #local pad="${s##*[! =]}" # not reliable; do explicit:
-    # explicit check: '=' only allowed in last 2 positions
-    if [[ "$s" == *"="* ]]; then
-        [[ "$s" == *"=" || "$s" == *"==" ]] || die "invalid base64 padding placement"
-        [[ "$s" != *"="*"="*"="* ]] || die "invalid base64 padding count"
-        # also ensure no '=' before last 2 chars
-        local prefix="${s:0:${#s}-2}"
-        [[ "$prefix" != *"="* ]] || die "invalid base64 padding placement"
-    fi
+    #case "$s" in
+    #    (*=*=*) die "invalid base64 padding" ;;  # '=' appears more than once separated
+    #esac
+    ##local pad="${s##*[! =]}" # not reliable; do explicit:
+    ## explicit check: '=' only allowed in last 2 positions
+    #if [[ "$s" == *"="* ]]; then
+    #    [[ "$s" == *"=" || "$s" == *"==" ]] || die "invalid base64 padding placement"
+    #    [[ "$s" != *"="*"="*"="* ]] || die "invalid base64 padding count"
+    #    # also ensure no '=' before last 2 chars
+    #    local prefix="${s:0:${#s}-2}"
+    #    [[ "$prefix" != *"="* ]] || die "invalid base64 padding placement"
+    #fi
 
     printf '%s\n' "$s"
 }

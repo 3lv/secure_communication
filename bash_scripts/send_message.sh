@@ -59,11 +59,11 @@ printf %s "$message" | openssl cms \
     -binary \
     -aes-256-gcm \
     -secretkey "$session_key" \
-    -secretkeyid 01\
+    -secretkeyid 01 \
     -out ciphertext.cms \
-    -outform DER \
+    -outform DER
 
-ciphertext_b64=$(base64 -w 0 ciphertext.cms)
+ciphertext_b64=$(base64 -w 0 ciphertext.cms | tr -d '\n')
 rm ciphertext.cms
 
 MAIL_FILE="mail.txt"

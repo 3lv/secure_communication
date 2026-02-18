@@ -1,0 +1,26 @@
+#!/usr/bin/bash
+# Usage: ./rec <sender_name>
+#
+# Convenience wrapper around ./receive_message.sh which also fetches points
+
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/../lib/guardrails.sh"
+source "$SCRIPT_DIR/../lib/constants.sh"
+source "$SCRIPT_DIR/../lib/parse.sh"
+require_cmd openssl base64 gmi notmuch
+
+DANGER_USER_other_person="$1"
+
+DANGER_USER_other_person=$(parse_known_person "$DANGER_USER_other_person")
+# Check if it's directory exists:
+if [ ! -d "$PEOPLE_DIR/$DANGER_USER_other_person" ]; then
+    die "Error: User '$DANGER_USER_other_person' does not exist. Please add them first using ./add_person.sh"
+fi
+other_person="$DANGER_USER_other_person"
+
+# Allow this command to fail, since there might not be a new point.
+set +e
+"$SCRIPT_DIR"/../receive_dh_point.sh "$other_person"
+set -e
+
+"$SCRIPT_DIR"/../receive_message.sh "$other_person"

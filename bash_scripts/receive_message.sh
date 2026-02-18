@@ -36,11 +36,15 @@ echo "Got latest 'Encrypted Message' email from $other_person"
 # Reverse the points (from our perspective, their "my_point" is our "other_point" etc)
 DANGER_FROM_NETWORK_other_point_timestamp=$(grep "my_point_timestamp: " "$DANGER_FROM_NETWORK_mail_file" | cut -d' ' -f2)
 DANGER_FROM_NETWORK_my_point_timestamp=$(grep "other_point_timestamp: " "$DANGER_FROM_NETWORK_mail_file" | cut -d' ' -f2)
-DANGER_FROM_NETWORK_ciphertext_b64=$(grep "ciphertext_b64: " "$DANGER_FROM_NETWORK_mail_file" | cut -d' ' -f2)
+#DANGER_FROM_NETWORK_ciphertext_b64=$(grep "ciphertext_b64: " "$DANGER_FROM_NETWORK_mail_file" | cut -d' ' -f2)
+# TODO: Improve this parsing. Currently gmail can insert newlines in the base64,
+#   moving the ciphertext value to the next line
+DANGER_FROM_NETWORK_ciphertext_b64=$(grep -A1 "ciphertext_b64:" "$DANGER_FROM_NETWORK_mail_file" | tail -n1)
 
 my_point_timestamp=$(parse_timestamp "$DANGER_FROM_NETWORK_my_point_timestamp")
 other_point_timestamp=$(parse_timestamp "$DANGER_FROM_NETWORK_other_point_timestamp")
 ciphertext_b64=$(parse_b64 "$DANGER_FROM_NETWORK_ciphertext_b64" 1000000)
+
 
 # TODO: Use point hash instead of timestamp, similar to the commented code
 #found_other_point=0
@@ -83,9 +87,9 @@ fi
 #done
 found_my_point=0
 found_my_point_dir=""
-if [ -f "$MY_DIR/$DH_MY_POINTS/$my_point_timestamp/eph_x25519_public.pem" ]; then
+if [ -f "$other_dir/$DH_MY_POINTS/$my_point_timestamp/eph_x25519_public.pem" ]; then
     found_my_point=1
-    found_my_point_dir="$MY_DIR/$DH_MY_POINTS/$my_point_timestamp"
+    found_my_point_dir="$other_dir/$DH_MY_POINTS/$my_point_timestamp"
 fi
 if [ $found_my_point -ne 1 ]; then
     echo "ERROR"
