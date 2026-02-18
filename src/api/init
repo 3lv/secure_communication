@@ -9,6 +9,11 @@ source "$SCRIPT_DIR/../lib/constants.sh"
 source "$SCRIPT_DIR/../lib/parse.sh"
 require_cmd openssl base64 gmi notmuch
 
+# Also initialize notmuch and gmi config files
+#notmuch setup --user-name="Secure Communication User" --user-email="$1"
+#notmuch new
+#gmi 
+
 DANGER_USER_email="$1"
 
 email=$(parse_email "$DANGER_USER_email")
@@ -17,4 +22,4 @@ mkdir -p "$MY_DIR"
 
 echo "$email" > "$MY_DIR/$EMAIL"
 
-./generate_signing_key.sh
+"$SCRIPT_DIR/../generate_signing_key.sh"

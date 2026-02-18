@@ -1,0 +1,1 @@
+- Make the lib/parse.sh functions always require min and max arguments

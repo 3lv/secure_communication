@@ -13,8 +13,8 @@ DANGER_USER_other_person="$1"
 
 DANGER_USER_other_person=$(parse_known_person "$DANGER_USER_other_person")
 # Check if it's directory exists:
-if [ ! -d "$PEOPLE_DIR/$DANGER_USER_other_person" ]; then
-    die "Error: User '$DANGER_USER_other_person' does not exist. Please add them first using ./add_person.sh"
+if [ ! -d "$CONTACTS_DIR/$DANGER_USER_other_person" ]; then
+    die "Error: User '$DANGER_USER_other_person' does not exist. Please add them first using ./add_contact"
 fi
 other_person="$DANGER_USER_other_person"
 

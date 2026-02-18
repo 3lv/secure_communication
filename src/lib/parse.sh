@@ -98,9 +98,9 @@ parse_path_segment() {
 parse_known_person() {
     local s="$1"
     s=$(parse_path_segment "$s" 100)
-    [[ -d "${PEOPLE_DIR}/$s" ]] || die "You don't have $s in your people agenda!"
-    [[ -f "${PEOPLE_DIR}/$s/ed25519_public.pem" ]] || die "Person $s does not have a ed25519 public key in their agenda directory!"
-    [[ -f "${PEOPLE_DIR}/$s/email_address.txt" ]] || die "Person $s does not have a email address in their agenda directory!"
+    [[ -d "${CONTACTS_DIR}/$s" ]] || die "You don't have $s in your contacts!"
+    [[ -f "${CONTACTS_DIR}/$s/ed25519_public.pem" ]] || die "Person $s does not have a ed25519 public key in their agenda directory!"
+    [[ -f "${CONTACTS_DIR}/$s/email_address.txt" ]] || die "Person $s does not have a email address in their agenda directory!"
 
     printf '%s\n' "$s"
 }

@@ -1,0 +1,49 @@
+#!/usr/bin/bash
+# Usage: ./add_person.sh <name> <email_address>
+
+
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/../lib/guardrails.sh"
+source "$SCRIPT_DIR/../lib/constants.sh"
+source "$SCRIPT_DIR/../lib/parse.sh"
+require_cmd openssl base64 gmi notmuch
+
+DANGER_USER_name="$1"
+DANGER_USER_email="$2"
+
+DANGER_USER_name="$(parse_path_segment "$DANGER_USER_name" 30)"
+# If user already exists
+if [ -d "$CONTACTS_DIR/$DANGER_USER_name" ]; then
+    echo "Error: User '$DANGER_USER_name' already exists."
+    exit 1
+fi
+name="$DANGER_USER_name"
+email="$(parse_email "$DANGER_USER_email")"
+
+echo "DEBUG: $name"
+other_dir="$CONTACTS_DIR/$name"
+mkdir -p "$other_dir"
+# Add email
+echo "$email" > "$other_dir/$EMAIL"
+
+# Add public key
+# User input key
+echo "You must be face to face with the person you want to add"
+echo "Enter the public key(base64) for $name"
+#DANGER_USER_public_key=""
+#while IFS= read -r line; do
+#    DANGER_USER_public_key+="$line"$'\n'
+#done
+# Only one line input
+read -r DANGER_USER_public_key
+public_key=$(parse_b64 "$DANGER_USER_public_key" 1000)
+
+public_key="-----BEGIN PUBLIC KEY-----"$'\n'"$public_key"$'\n'"-----END PUBLIC KEY-----"
+echo "$public_key" > "$other_dir/ed25519_public.pem"
+
+
+echo "Sending an initial DH point to the new contact"
+#, so that they can start sending messages
+"$SCRIPT_DIR/../send_dh_point.sh" "$name"
+
+echo "Contact '$name' added successfully!"

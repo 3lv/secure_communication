@@ -14,7 +14,7 @@ other_person=$(parse_known_person "$DANGER_USER_other_person")
 # TODO: Parse the message
 message="$DANGER_USER_message"
 
-other_dir="${PEOPLE_DIR}/${other_person}"
+other_dir="${CONTACTS_DIR}/${other_person}"
 mkdir -p "$other_dir/$DH_MY_POINTS"
 mkdir -p "$other_dir/$DH_RECEIVED_POINTS"
 my_email_address=$(cat "$MY_DIR/$EMAIL")
@@ -25,6 +25,13 @@ other_email_address=$(cat "$other_dir/$EMAIL")
 
 my_latest_point=$(find "$other_dir/$DH_MY_POINTS" -mindepth 1 -maxdepth 1 -type d | sort -r | head -n 1)
 other_latest_point=$(find "$other_dir/$DH_RECEIVED_POINTS" -mindepth 1 -maxdepth 1 -type d | sort -r | head -n 1)
+# Check if empty
+if [ -z "$my_latest_point" ]; then
+    die "No DH points found for self, please run send_dh_point.sh first to generate and send a DH point"
+fi
+if [ -z "$other_latest_point" ]; then
+    die "No DH points found for $other_person, please ask them to run send_dh_point.sh first to generate and send a DH point"
+fi
 
 my_point_timestamp=$(basename "$my_latest_point")
 other_point_timestamp=$(basename "$other_latest_point")
