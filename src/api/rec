@@ -18,9 +18,6 @@ if [ ! -d "$CONTACTS_DIR/$DANGER_USER_other_person" ]; then
 fi
 other_person="$DANGER_USER_other_person"
 
-# Allow this command to fail, since there might not be a new point.
-set +e
-"$SCRIPT_DIR"/../receive_dh_point.sh "$other_person"
-set -e
+"$SCRIPT_DIR/../receive_dh_point.sh" "$other_person"
 
-"$SCRIPT_DIR"/../receive_message.sh "$other_person"
+"$SCRIPT_DIR/../receive_message.sh" "$other_person"

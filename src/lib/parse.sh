@@ -56,10 +56,10 @@ parse_timestamp() {
 # - '=' only at the end, 0..2 chars
 # It does NOT decode
 # Usage:
-#   parse_b64 "$input" maxlen
+#   parse_b64 "$input" minlen maxlen
 parse_b64() {
-    local s="$1" maxlen="$2"
-    is_len_between "$s" 4 "$maxlen" || die "base64 length must be between 4 and $maxlen"
+    local s="$1" minlen="$2" maxlen="$3"
+    is_len_between "$s" "$minlen" "$maxlen" || die "base64 length must be between $minlen and $maxlen"
     is_b64_charset "$s" || die "invalid base64 characters"
     (( ${#s} % 4 == 0 )) || die "invalid base64 length (must be multiple of 4)"
 
@@ -83,10 +83,10 @@ parse_b64() {
 # Validate a relative "safe path segment" (no slashes, no '..'), bounded length.
 # This is for constructing paths like "$base/$segment".
 # Usage:
-#   parse_path_segment "$input" maxlen
+#   parse_path_segment "$input" minlen maxlen
 parse_path_segment() {
-  local s="$1" maxlen="$2"
-  is_len_between "$s" 1 "$maxlen" || die "path segment length must be between 1 and $maxlen"
+  local s="$1" minlen="$2" maxlen="$3"
+  is_len_between "$s" "$minlen" "$maxlen" || die "path segment length must be between $minlen and $maxlen"
   [[ "$s" != */* ]] || die "path segment must not contain '/'"
   [[ "$s" != "." && "$s" != ".." ]] || die "invalid path segment"
   [[ "$s" != *".."* ]] || true  # optional; too strict for some names
@@ -97,7 +97,7 @@ parse_path_segment() {
 
 parse_known_person() {
     local s="$1"
-    s=$(parse_path_segment "$s" 100)
+    s=$(parse_path_segment "$s" 1 30)
     [[ -d "${CONTACTS_DIR}/$s" ]] || die "You don't have $s in your contacts!"
     [[ -f "${CONTACTS_DIR}/$s/ed25519_public.pem" ]] || die "Person $s does not have a ed25519 public key in their agenda directory!"
     [[ -f "${CONTACTS_DIR}/$s/email_address.txt" ]] || die "Person $s does not have a email address in their agenda directory!"

@@ -12,8 +12,6 @@ DANGER_USER_other_person="$1"
 other_person=$(parse_known_person "$DANGER_USER_other_person")
 
 other_dir="${CONTACTS_DIR}/${other_person}"
-mkdir -p "$other_dir/$DH_MY_POINTS"
-mkdir -p "$other_dir/$DH_RECEIVED_POINTS"
 my_email_address=$(cat "$MY_DIR/$EMAIL")
 other_email_address=$(cat "$other_dir/$EMAIL")
 
@@ -34,7 +32,6 @@ base64 -w 0 "$NEW_POINT/eph_x25519_public.pem" > "$NEW_POINT/pub.b64"
 echo "timestamp: $TIMESTAMP" > "$NEW_POINT/payload.txt"
 echo "dh_pub_b64: $(cat "$NEW_POINT/pub.b64")" >> "$NEW_POINT/payload.txt"
 # TODO: Also add sender, receiver here and in the mail
-
 # Sign the payload
 openssl pkeyutl \
     -sign \
@@ -42,14 +39,17 @@ openssl pkeyutl \
     -rawin \
     -in "$NEW_POINT/payload.txt" \
     -out "$NEW_POINT/eph_x25519_public.sig"
-base64 -w 0 "$NEW_POINT/eph_x25519_public.sig" > "$NEW_POINT/sig.b64"
+rm "$NEW_POINT/payload.txt" # TODO: Improve cleaning up, maybe with a cleanup function
 
+base64 -w 0 "$NEW_POINT/eph_x25519_public.sig" > "$NEW_POINT/sig.b64"
 MAIL_FILE="mail.txt"
 echo "-----BEGIN DH EMAIL-----" > "$MAIL_FILE"
 echo "timestamp: $TIMESTAMP" >> "$MAIL_FILE"
 echo "dh_pub_b64: $(cat "$NEW_POINT/pub.b64")" >> "$MAIL_FILE"
 echo "dh_sig_b64: $(cat "$NEW_POINT/sig.b64")" >> "$MAIL_FILE"
 echo "-----END DH EMAIL-----" >> "$MAIL_FILE"
+rm "$NEW_POINT/pub.b64" "$NEW_POINT/sig.b64"
+
 
 echo "Sending DH email..."
 (

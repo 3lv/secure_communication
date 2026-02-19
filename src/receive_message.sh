@@ -14,8 +14,6 @@ DANGER_USER_other_person="$1"
 other_person=$(parse_known_person "$DANGER_USER_other_person")
 
 other_dir="${CONTACTS_DIR}/${other_person}"
-mkdir -p "$other_dir/$DH_MY_POINTS"
-mkdir -p "$other_dir/$DH_RECEIVED_POINTS"
 other_email_address=$(cat "$other_dir/$EMAIL")
 
 #mail_file="mail.txt"
@@ -43,7 +41,7 @@ DANGER_FROM_NETWORK_ciphertext_b64=$(grep -A1 "ciphertext_b64:" "$DANGER_FROM_NE
 
 my_point_timestamp=$(parse_timestamp "$DANGER_FROM_NETWORK_my_point_timestamp")
 other_point_timestamp=$(parse_timestamp "$DANGER_FROM_NETWORK_other_point_timestamp")
-ciphertext_b64=$(parse_b64 "$DANGER_FROM_NETWORK_ciphertext_b64" 1000000)
+ciphertext_b64=$(parse_b64 "$DANGER_FROM_NETWORK_ciphertext_b64" 10 1000000)
 
 
 # TODO: Use point hash instead of timestamp, similar to the commented code

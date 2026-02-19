@@ -76,10 +76,10 @@ require_cmd() {
 # All user inputs should be validated before usage.
 #   Because of that, all user inputs variables will start with USER_INPUT_
 #   to make it clear that they need to be validated before usage.
-#   Single entry point for user inputs also makes it easier to review the code for security issues.
+#   This does not improve the theoretical security, but if code is not altered,
+#   it can help not to shoot yourself in the foot by accidentally using bad input
 DANGER_USER_variable_name="VARIABLE FROM USER INPUT, MUST BE VALIDATED BEFORE USAGE"
-# These are closely related to CLIs which do network operations.
-#   Whenever using curl, gmi, etc, there should be a clear indicator:
+# All variables that come from the network are considered dangerous, they require strict validation
 DANGER_NETWORK_variable_name="VARIABLE FROM NETWORK, MUST BE VALIDATED BEFORE USAGE"
 
 # Ofc, never use eval or similar functions to execute anything that can be related to user input,

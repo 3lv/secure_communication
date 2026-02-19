@@ -1,0 +1,9 @@
+[Unit]
+Description=Schedule Clear old Diffie-Hellman points (%i)
+
+[Timer]
+OnCalendar=*-*-* 05:00:00
+Persistent=true
+
+[Install]
+WantedBy=timers.target

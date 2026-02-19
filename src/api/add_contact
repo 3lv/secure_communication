@@ -11,7 +11,7 @@ require_cmd openssl base64 gmi notmuch
 DANGER_USER_name="$1"
 DANGER_USER_email="$2"
 
-DANGER_USER_name="$(parse_path_segment "$DANGER_USER_name" 30)"
+DANGER_USER_name="$(parse_path_segment "$DANGER_USER_name" 1 30)"
 # If user already exists
 if [ -d "$CONTACTS_DIR/$DANGER_USER_name" ]; then
     echo "Error: User '$DANGER_USER_name' already exists."
@@ -23,6 +23,11 @@ email="$(parse_email "$DANGER_USER_email")"
 echo "DEBUG: $name"
 other_dir="$CONTACTS_DIR/$name"
 mkdir -p "$other_dir"
+
+# Create all subdirectories for that contact
+mkdir -p "$other_dir/$DH_MY_POINTS"
+mkdir -p "$other_dir/$DH_RECEIVED_POINTS"
+
 # Add email
 echo "$email" > "$other_dir/$EMAIL"
 
@@ -36,7 +41,7 @@ echo "Enter the public key(base64) for $name"
 #done
 # Only one line input
 read -r DANGER_USER_public_key
-public_key=$(parse_b64 "$DANGER_USER_public_key" 1000)
+public_key=$(parse_b64 "$DANGER_USER_public_key" 10 1000)
 
 public_key="-----BEGIN PUBLIC KEY-----"$'\n'"$public_key"$'\n'"-----END PUBLIC KEY-----"
 echo "$public_key" > "$other_dir/ed25519_public.pem"

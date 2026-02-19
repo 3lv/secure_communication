@@ -23,25 +23,22 @@ other_person="$DANGER_USER_other_person"
 # If there is not point for that person, send one
 #if [ -z "$(ls -A "$CONTACTS_DIR/$other_person/$DH_MY_POINTS" 2>/dev/null)" ]; then
 #    echo "No DH point found for $other_person, sending one before the message..."
-#    "$SCRIPT_DIR"/../send_dh_point.sh "$other_person"
+#    "$SCRIPT_DIR/../send_dh_point.sh" "$other_person"
 #    echo "DH point sent to $other_person"
 #fi
 ## If there is no received point for that person, try to fetch one
 #if [ -z "$(ls -A "$CONTACTS_DIR/$other_person/$DH_RECEIVED_POINTS" 2>/dev/null)" ]; then
 #    echo "No received DH point found for $other_person, trying to fetch one..."
-#    "$SCRIPT_DIR"/../receive_dh_point.sh "$other_person"
+#    "$SCRIPT_DIR/../receive_dh_point.sh" "$other_person"
 #    if [ -z "$(ls -A "$CONTACTS_DIR/$other_person/$DH_RECEIVED_POINTS" 2>/dev/null)" ]; then
 #        die "No received DH point found for $other_person after fetching, cannot send message securely"
 #    fi
 #    echo "Received DH point from $other_person"
 #fi
-"$SCRIPT_DIR"/../send_dh_point.sh "$other_person"
-# Allow this command to fail, since there might not be a new point.
-set +e
-"$SCRIPT_DIR"/../receive_dh_point.sh "$other_person"
-set -e
+"$SCRIPT_DIR/../send_dh_point.sh" "$other_person"
+"$SCRIPT_DIR/../receive_dh_point.sh" "$other_person"
 
 # TODO: Parse message
 message=$DANGER_USER_message
 
-"$SCRIPT_DIR"/../send_message.sh "$other_person" "$message"
+"$SCRIPT_DIR/../send_message.sh" "$other_person" "$message"

@@ -15,8 +15,6 @@ other_person=$(parse_known_person "$DANGER_USER_other_person")
 message="$DANGER_USER_message"
 
 other_dir="${CONTACTS_DIR}/${other_person}"
-mkdir -p "$other_dir/$DH_MY_POINTS"
-mkdir -p "$other_dir/$DH_RECEIVED_POINTS"
 my_email_address=$(cat "$MY_DIR/$EMAIL")
 other_email_address=$(cat "$other_dir/$EMAIL")
 

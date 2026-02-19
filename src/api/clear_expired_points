@@ -1,0 +1,50 @@
+#!/usr/bin/bash
+# Usage: ./clear_expired_points.sh
+# Usually used by a systemd serice + systemd timer to periodically clear old points.
+# Expected service and timer can be found in the repo
+#
+# Clears expired points(i.e points that are older than $DH_POINT_EXPIRATION_SECONDS)
+# Does this for all contacts.
+
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/../lib/guardrails.sh"
+source "$SCRIPT_DIR/../lib/constants.sh"
+source "$SCRIPT_DIR/../lib/parse.sh"
+require_cmd openssl base64 gmi notmuch
+
+current_time=$(date +%s)
+
+has_removed_points=false
+for contact_dir in "$CONTACTS_DIR"/*; do
+    if [ -d "$contact_dir" ]; then
+        # Clear old my points
+        for point_dir in "$contact_dir/$DH_MY_POINTS"/*; do
+            if [ -d "$point_dir" ]; then
+                timestamp=$(basename "$point_dir")
+                if (( current_time - timestamp > DH_POINT_EXPIRATION_SECONDS )); then
+                    echo "Clearing old my point for $(basename "$contact_dir") with timestamp $timestamp"
+                    rm -rf "$point_dir"
+                    has_removed_points=true
+                fi
+            fi
+        done
+
+        # Clear old received points
+        for point_dir in "$contact_dir/$DH_RECEIVED_POINTS"/*; do
+            if [ -d "$point_dir" ]; then
+                timestamp=$(basename "$point_dir")
+                if (( current_time - timestamp > DH_POINT_EXPIRATION_SECONDS )); then
+                    echo "Clearing old received point for $(basename "$contact_dir") with timestamp $timestamp"
+                    rm -rf "$point_dir"
+                    has_removed_points=true
+                fi
+            fi
+        done
+    fi
+done
+
+if [ "$has_removed_points" = true ]; then
+    echo "Old points cleared."
+else
+    echo "No old points to clear."
+fi

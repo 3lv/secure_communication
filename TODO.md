@@ -1,2 +1,3 @@
-- Make the lib/parse.sh functions always require min and max arguments
-- Improve receive_dh_point error handling when last mail was already process
+- Make an installation script that safely installs to /urs/local/lib and /usr/local/bin
+  - Be aware of symlinks, currently the $SCRIPT_DIR is not so robust
+  - Also change the .service when done

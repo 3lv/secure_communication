@@ -1,0 +1,46 @@
+#!/usr/bin/bash
+# Usage: ./MALICIOUS_clear_old_points.sh
+#
+# Instead of clearing points which would give non-repudiation guarantees, we just move them to a backup directory.
+# This way we can still access them if needed, but they won't be used for key agreement anymore.
+
+# Clears old points that are older than $DH_POINT_EXPIRATION_SECONDS for all contacts
+
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/../lib/guardrails.sh"
+source "$SCRIPT_DIR/../lib/constants.sh"
+source "$SCRIPT_DIR/../lib/parse.sh"
+require_cmd openssl base64 gmi notmuch
+
+current_time=$(date +%s)
+
+DH_MY_POINTS_BACKUP_DIR="$STATE_DIR/dh_my_points_backup"
+DH_RECEIVED_POINTS_BACKUP_DIR="$STATE_DIR/dh_received_points_backup"
+
+mkdir -p "$DH_MY_POINTS_BACKUP_DIR"
+mkdir -p "$DH_RECEIVED_POINTS_BACKUP_DIR"
+
+# Instead of deleting, just move them to a separate "old_points" directory
+for contact_dir in "$CONTACTS_DIR"/*; do
+    if [ -d "$contact_dir" ]; then
+        for point_dir in "$contact_dir/$DH_MY_POINTS"/*; do
+            if [ -d "$point_dir" ]; then
+                timestamp=$(basename "$point_dir")
+                if (( current_time - timestamp > DH_POINT_EXPIRATION_SECONDS )); then
+                    echo "Clearing old my point for $(basename "$contact_dir") with timestamp $timestamp"
+                    mv "$point_dir" "$DH_MY_POINTS_BACKUP_DIR/"
+                fi
+            fi
+        done
+
+        for point_dir in "$contact_dir/$DH_RECEIVED_POINTS"/*; do
+            if [ -d "$point_dir" ]; then
+                timestamp=$(basename "$point_dir")
+                if (( current_time - timestamp > DH_POINT_EXPIRATION_SECONDS )); then
+                    echo "Clearing old received point for $(basename "$contact_dir") with timestamp $timestamp"
+                    mv "$point_dir" "$DH_RECEIVED_POINTS_BACKUP_DIR/"
+                fi
+            fi
+        done
+    fi
+done
