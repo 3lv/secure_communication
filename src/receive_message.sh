@@ -9,6 +9,8 @@ SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/lib/guardrails.sh"
 source "$SCRIPT_DIR/lib/constants.sh"
 source "$SCRIPT_DIR/lib/parse.sh"
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/lib/sandbox.sh"
 
 DANGER_USER_other_person="$1"
 other_person=$(parse_known_person "$DANGER_USER_other_person")
@@ -19,7 +21,7 @@ other_email_address=$(cat "$other_dir/$EMAIL")
 #mail_file="mail.txt"
 echo "Fetching emails from $other_person..."
 gmi pull -C "$GMI_DIR" >/dev/null
-DANGER_FROM_NETWORK_mail_file="$(notmuch search --output=files --sort=newest-first \
+DANGER_FROM_NETWORK_mail_file="$(sandbox_notmuch_search --output=files --sort=newest-first \
   "from:$other_email_address subject:\"Encrypted Message\"" | head -n 1)"
 # DANGER explained:
 #  - File can actually not exist
@@ -114,7 +116,7 @@ session_key=$(openssl kdf -keylen 32 \
 
 
 # Create the ciphertext.cms from the ciphertext_b64
-echo "$ciphertext_b64" | base64 -d > /tmp/ciphertext.cms
+echo "$ciphertext_b64" | base64 -w 0 -d > /tmp/ciphertext.cms
 
 decrypted_message=$(openssl cms \
   -decrypt \

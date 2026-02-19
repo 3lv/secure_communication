@@ -1,6 +1,7 @@
 #!/usr/bin/bash
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/guardrails.sh"
 source "$SCRIPT_DIR/constants.sh"
 
 is_len_between() {

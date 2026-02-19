@@ -7,6 +7,8 @@ SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/lib/guardrails.sh"
 source "$SCRIPT_DIR/lib/constants.sh"
 source "$SCRIPT_DIR/lib/parse.sh"
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/lib/sandbox.sh"
 
 DANGER_USER_other_person="$1"
 other_person=$(parse_known_person "$DANGER_USER_other_person")
@@ -15,9 +17,9 @@ other_dir="${CONTACTS_DIR}/${other_person}"
 other_email_address=$(cat "$other_dir/$EMAIL")
 
 echo "Fetching emails from $other_person..."
-gmi pull -C "$GMI_DIR" >/dev/null
+sandbox_gmi_pull >/dev/null
 
-DANGER_NETWORK_mail_file="$(notmuch search --output=files --sort=newest-first \
+DANGER_NETWORK_mail_file="$(sandbox_notmuch_search --output=files --sort=newest-first \
   "from:$other_email_address subject:\"DH Point Update\"" | head -n 1)"
 if [ -z "$DANGER_NETWORK_mail_file" ]; then
     die "No email found from $other_person with subject \"DH Point Update\""
@@ -48,8 +50,8 @@ POTENTIAL_NEW_POINT="$(mktemp -d)"
 mkdir -p "$POTENTIAL_NEW_POINT"
 
 # Save to temp file before verifying with openssl
-echo "$public_point_b64" | base64 -d > "$POTENTIAL_NEW_POINT/received_pub.pem"
-echo "$signature_b64" | base64 -d > "$POTENTIAL_NEW_POINT/received_sig.bin"
+echo "$public_point_b64" | base64 -w 0 -d > "$POTENTIAL_NEW_POINT/received_pub.pem"
+echo "$signature_b64" | base64 -w 0 -d > "$POTENTIAL_NEW_POINT/received_sig.bin"
 
 # Create the payload to verify (timestamp + public point)
 echo "timestamp: $timestamp" > "$POTENTIAL_NEW_POINT/payload.txt"

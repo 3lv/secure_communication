@@ -36,22 +36,17 @@ export LC_ALL
 PATH='/usr/sbin:/usr/bin:/sbin:/bin'
 export PATH
 
+# Currently haven't decided on best way to import
 # Whenever sourcing a file, to it relative to the current script, not the current working directory.
 # 
 #safe_source() {
-#    current_script_dir() {
-#        local script_path="${BASH_SOURCE[0]}"
-#        local script_dir
-#        script_dir="$(dirname "$script_path")"
-#        echo "$script_dir"
-#    }
-#    local file_path="$1"
-#    if [ -f "$file_path" ]; then
-#        # shellcheck disable=SC1090
-#        source "$(current_script_dir)/$file_path"
-#    else
-#        die "Error: File $file_path not found!"
-#    fi
+#  local file_path="$1"
+#  SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+#  if [ -f "$file_path" ]; then
+#      source "$SCRIPT_DIR/$file_path"
+#  else
+#      die "Error: File $file_path not found!"
+#  fi
 #}
 #
 # Use this to source files

@@ -6,6 +6,8 @@ SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/lib/guardrails.sh"
 source "$SCRIPT_DIR/lib/constants.sh"
 source "$SCRIPT_DIR/lib/parse.sh"
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/lib/sandbox.sh"
 
 DANGER_USER_other_person="$1"
 DANGER_USER_message="$2"
@@ -86,7 +88,9 @@ echo "Sending encrypted message email..."
     echo "Date: $(date -R)"
     echo
     cat "$MAIL_FILE"
-) | gmi send -t -C "$GMI_DIR" >/dev/null
+) | sandbox_gmi_send >/dev/null
+#) | gmi send -t -C "$GMI_DIR" >/dev/null
+
 rm "$MAIL_FILE"
 
 echo "Message sent successfully!"

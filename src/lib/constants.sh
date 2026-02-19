@@ -1,7 +1,6 @@
 #!/usr/bin/bash
 
 #SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-# Resolve this script's absolute path reliably (works via symlink + via $PATH)
 #source "$SCRIPT_DIR/guardrails.sh"
 
 # Parameters:
@@ -21,7 +20,8 @@ MY_DIR="${CONTACTS_DIR}/${ME}"
 # Email related files
 EMAIL="email_address.txt"
 EMAIL_PASSWORD="email_password.txt"
-GMI_DIR="$HOME/.mail/gmail"
+#GMI_DIR="$HOME/.mail/gmail"
+GMI_DIR="/var/lib/mail"
 
 # Installation:
 INSTALL_DIR="/usr/local/lib/secure_communication"

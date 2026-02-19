@@ -1,3 +1,4 @@
+- Make the source path to be always relative to the PROJECT_ROOT
 - Make an installation script that safely installs to /urs/local/lib and /usr/local/bin
   - Be aware of symlinks, currently the $SCRIPT_DIR is not so robust
   - Also change the .service when done

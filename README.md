@@ -91,7 +91,9 @@ Because it's a known fact that the other party can "maliciously" keep the old po
 Used crypto algorithms from openssl:
 ed25519 signatures + x25519 static-static Diffe-Hellman + HKDF + AES-GCM(128)
 
-
 Dependencies: `openssl` `base64` `gmi` `notmuch`
+
+Using systemd run sandboxing, `gmi` and `notmuch` are being run with very low privileges, then can only read and write in /lib/var/mail
+
 
 # TODO: Complete Security Model
