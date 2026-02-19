@@ -1,0 +1,19 @@
+#!/usr/bin/bash
+# Usage: ./show_public_info.sh
+
+
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/../lib/guardrails.sh"
+source "$SCRIPT_DIR/../lib/constants.sh"
+source "$SCRIPT_DIR/../lib/parse.sh"
+require_cmd openssl base64 gmi notmuch
+
+# Show email
+email=$(cat "$MY_DIR/$EMAIL")
+echo "---- Public Information ---"
+echo "Email: $email"
+echo
+# Show public signing key (without the header and footer)
+echo "Public signing key:"
+grep -v "^-----" "$MY_DIR/ed25519_public.pem"
+echo "---------------------------"
